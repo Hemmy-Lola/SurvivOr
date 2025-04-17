@@ -1,4 +1,5 @@
 using UnityEngine;
+using static SpawnerZombies;
 
 public abstract class PersonnageBase : MonoBehaviour
 {
@@ -18,47 +19,34 @@ public abstract class PersonnageBase : MonoBehaviour
         InitialiserStats();
     }
 
+    // Méthode abstraite pour initialiser les statistiques spécifiques au personnage
     protected abstract void InitialiserStats();
+
+    // Génère une position aléatoire dans les limites spécifiées
     private Vector3 GenererPositionAleatoire(Vector3[] limites)
     {
+        if (limites == null || limites.Length < 3)
+        {
+            Debug.LogError("Les limites fournies sont invalides pour générer une position aléatoire.");
+            return Vector3.zero;
+        }
+
         float x = Random.Range(limites[0].x, limites[2].x);
         float z = Random.Range(limites[0].z, limites[2].z);
         return new Vector3(x, limites[0].y, z);
     }
+
+    // Spawne un zombie à une position aléatoire dans les limites spécifiées
     private GameObject SpawnerZombie(ConfigSpawn config, Vector3[] limites)
     {
+        if (config == null || config.prefabZombie == null)
+        {
+            Debug.LogError("Configuration de spawn ou prefabZombie invalide.");
+            return null;
+        }
+
         Vector3 position = GenererPositionAleatoire(limites);
         GameObject zombie = Instantiate(config.prefabZombie, position, Quaternion.identity);
         return zombie;
-    }
- }
-public class AireDeJeu : MonoBehaviour
-{
-    public ARPlaneManager planeManager;
-    public GameObject marqueurPrefab;
-    private Vector3[] limites = new Vector3[4];
-    private int indexLimite = 0;
-
-    void Update()
-    {
-        if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
-        {
-            if (indexLimite < 4)
-            {
-                Vector2 positionEcran = Input.GetTouch(0).position;
-                Ray ray = Camera.main.ScreenPointToRay(positionEcran);
-                if (Physics.Raycast(ray, out RaycastHit hit))
-                {
-                    limites[indexLimite] = hit.point;
-                    Instantiate(marqueurPrefab, hit.point, Quaternion.identity);
-                    indexLimite++;
-                }
-            }
-        }
-    }
-
-    public Vector3[] ObtenirLimites()
-    {
-        return limites;
     }
 }
