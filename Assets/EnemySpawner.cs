@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;                        // ← indispensable pour ToList()
 using UnityEngine;
@@ -13,9 +13,10 @@ public class EnemySpawner : MonoBehaviour
     [Header("Spawn Settings")]
     public float spawnInterval = 2f;
     public bool spawnOnlyOnPlanes = true;
+    public float spawnDistance = 3f;  // Distance à laquelle les ennemis apparaissent
 
     [Header("Références AR")]
-    public ARPlaneManager planeManager;     // ← Assigne-le dans l’Inspector
+    public ARPlaneManager planeManager;     // ← Assigne-le dans l'Inspector
 
     // liste interne des mobs vivants
     private List<GameObject> enemies = new List<GameObject>();
@@ -41,42 +42,59 @@ public class EnemySpawner : MonoBehaviour
     {
         if (enemyPrefab == null)
         {
-            Debug.LogError("[Spawner] Pas de enemyPrefab assigné !", this);
+            Debug.LogError("[Spawner] Pas de enemyPrefab assigné !", this);
             return;
         }
 
-        Vector3 spawnPos;
+        var cam = Camera.main;
+        if (cam == null) return;
 
-        if (spawnOnlyOnPlanes
-            && planeManager != null
-            && planeManager.trackables.count > 0)
+        // Position de base à la hauteur de la caméra
+        Vector3 cameraPosition = cam.transform.position;
+        
+        // Direction aléatoire autour du joueur
+        float randomAngle = Random.Range(0f, 360f);
+        Vector3 spawnDirection = Quaternion.Euler(0, randomAngle, 0) * Vector3.forward;
+        
+        // Position finale du spawn
+        Vector3 spawnPos = cameraPosition + (spawnDirection * spawnDistance);
+
+        // Si on utilise les planes AR, on ajuste la hauteur
+        if (spawnOnlyOnPlanes && planeManager != null && planeManager.trackables.count > 0)
         {
             var planes = new List<ARPlane>();
             foreach (var p in planeManager.trackables)
                 planes.Add(p);
-            var plane = planes[UnityEngine.Random.Range(0, planes.Count)];
+            
+            // Trouver le plane le plus proche
+            ARPlane nearestPlane = null;
+            float shortestDistance = float.MaxValue;
+            
+            foreach (var plane in planes)
+            {
+                float distance = Vector3.Distance(spawnPos, plane.transform.position);
+                if (distance < shortestDistance)
+                {
+                    shortestDistance = distance;
+                    nearestPlane = plane;
+                }
+            }
 
-            Vector2 halfSize = plane.size * 0.5f;
-
-            float localX = UnityEngine.Random.Range(-halfSize.x, halfSize.x);
-            float localZ = UnityEngine.Random.Range(-halfSize.y, halfSize.y);
-            Vector3 localOffset = new Vector3(localX, 0f, localZ);
-
-            spawnPos = plane.transform.TransformPoint(localOffset);
+            if (nearestPlane != null)
+            {
+                // Ajuster la hauteur selon le plane le plus proche
+                spawnPos.y = nearestPlane.transform.position.y;
+            }
         }
-        else
-        {
-            var cam = Camera.main;
-            spawnPos = (cam != null)
-                ? cam.transform.position + cam.transform.forward * 1f
-                : Vector3.zero;
-        }
 
+        // Créer l'ennemi et le faire regarder vers le joueur
         var e = Instantiate(enemyPrefab, spawnPos, Quaternion.identity);
+        e.transform.LookAt(cameraPosition);
+        
         var script = e.GetComponent<Enemy>();
         if (script == null)
         {
-            Debug.LogError("[Spawner] Prefab sans script Enemy !", e);
+            Debug.LogError("[Spawner] Prefab sans script Enemy !", e);
             Destroy(e);
             return;
         }
