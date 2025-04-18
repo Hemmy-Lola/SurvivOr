@@ -5,25 +5,23 @@ using UnityEngine;
 public class EnemySpawner : MonoBehaviour
 {
     [Header("Prefab & limites")]
-    public GameObject enemyPrefab;    
+    public List<GameObject> enemyPrefabs; // Liste des différents types de zombies
     public int maxEnemies = 10;
 
     [Header("Paramètres de spawn")]
-    public float spawnRadius = 4f;
+    public Transform[] spawnZones; // Zones de spawn prédéfinies
     public float spawnInterval = 2f;
 
-    private Transform camTransform;
     private List<GameObject> enemies = new List<GameObject>();
 
     void Start()
     {
-        if (Camera.main == null)
+        if (spawnZones == null || spawnZones.Length == 0)
         {
-            Debug.LogError("❌ Pas de MainCamera dans la scène ! Tague ta camera AR en 'MainCamera'.");
+            Debug.LogError("❌ Pas de zones de spawn définies !");
             enabled = false;
             return;
         }
-        camTransform = Camera.main.transform;
 
         StartCoroutine(SpawnLoop());
     }
@@ -40,26 +38,32 @@ public class EnemySpawner : MonoBehaviour
 
     private void SpawnOne()
     {
-        if (enemyPrefab == null)
+        if (enemyPrefabs == null || enemyPrefabs.Count == 0)
         {
-            Debug.LogError("❌ enemyPrefab non assigné dans l’Inspector !", this);
+            Debug.LogError("❌ Aucun prefab d'ennemi assigné !");
             return;
         }
 
-        Vector3 dir = Random.onUnitSphere;
-        dir.y = 0;
-        Vector3 pos = camTransform.position + dir.normalized * spawnRadius;
+        // Choisir une zone de spawn aléatoire
+        Transform spawnZone = spawnZones[Random.Range(0, spawnZones.Length)];
+        Vector3 spawnPosition = spawnZone.position + new Vector3(
+            Random.Range(-2f, 2f), 0, Random.Range(-2f, 2f)
+        );
 
-        GameObject e = Instantiate(enemyPrefab, pos, Quaternion.identity);
-        Enemy enemyScript = e.GetComponent<Enemy>();
+        // Choisir un type de zombie aléatoire
+        GameObject prefab = enemyPrefabs[Random.Range(0, enemyPrefabs.Count)];
+        GameObject enemy = Instantiate(prefab, spawnPosition, Quaternion.identity);
+
+        // Vérifier que l'ennemi a bien un script Enemy
+        Enemy enemyScript = enemy.GetComponent<Enemy>();
         if (enemyScript == null)
         {
-            Debug.LogError("❌ Ton prefab Enemy n'a pas le script Enemy !", e);
-            Destroy(e);
+            Debug.LogError("❌ Le prefab d'ennemi n'a pas de script Enemy !");
+            Destroy(enemy);
             return;
         }
 
-        enemies.Add(e);
-        enemyScript.OnDeath += () => enemies.Remove(e);
+        enemies.Add(enemy);
+        enemyScript.OnDeath += () => enemies.Remove(enemy);
     }
 }

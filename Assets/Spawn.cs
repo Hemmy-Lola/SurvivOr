@@ -8,9 +8,9 @@ public class SpawnerZombies : MonoBehaviour
     {
         public string typeZombie;
         public GameObject prefabZombie;
-        public int limiteMax = 5;          // Nombre maximum de ce type
-        public float tempsEntreSpawns = 3f; // Temps entre chaque spawn
-        public Transform[] pointsDeSpawn;  // Plusieurs points de spawn possibles
+        public int limiteMax = 5;
+        public float tempsEntreSpawns = 3f; 
+        public Transform[] pointsDeSpawn; 
         [HideInInspector] public float timer = 0f;
         [HideInInspector] public int nombreActuel = 0;
     }

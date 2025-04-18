@@ -1,5 +1,4 @@
 // Archer.cs
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class ZombieArcher : PersonnageBase
