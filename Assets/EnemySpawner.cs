@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.XR.ARFoundation;
 
 public class EnemySpawner : MonoBehaviour
 {
@@ -11,18 +12,17 @@ public class EnemySpawner : MonoBehaviour
     [Header("Paramètres de spawn")]
     public Transform[] spawnZones; // Zones de spawn prédéfinies
     public float spawnInterval = 2f;
+    public bool spawnOnlyOnPlanes = true;
+
+    [Header("Références AR")]
+    public ARPlaneManager planeManager; // Gestionnaire des plans AR
 
     private List<GameObject> enemies = new List<GameObject>();
 
     void Start()
     {
-        if (spawnZones == null || spawnZones.Length == 0)
-        {
-            Debug.LogError("❌ Pas de zones de spawn définies !");
-            enabled = false;
-            return;
-        }
-
+        if (spawnOnlyOnPlanes && planeManager == null)
+            Debug.LogWarning("[Spawner] spawnOnlyOnPlanes activé mais pas de planeManager !");
         StartCoroutine(SpawnLoop());
     }
 
@@ -44,17 +44,33 @@ public class EnemySpawner : MonoBehaviour
             return;
         }
 
-        // Choisir une zone de spawn aléatoire
-        Transform spawnZone = spawnZones[Random.Range(0, spawnZones.Length)];
-        Vector3 spawnPosition = spawnZone.position + new Vector3(
-            Random.Range(-2f, 2f), 0, Random.Range(-2f, 2f)
-        );
+        Vector3 spawnPosition;
 
-        // Choisir un type de zombie aléatoire
+        if (spawnOnlyOnPlanes && planeManager != null && planeManager.trackables.count > 0)
+        {
+            var planes = new List<ARPlane>();
+            foreach (var p in planeManager.trackables)
+                planes.Add(p);
+            var plane = planes[Random.Range(0, planes.Count)];
+
+            Vector2 halfSize = plane.size * 0.5f;
+            float localX = Random.Range(-halfSize.x, halfSize.x);
+            float localZ = Random.Range(-halfSize.y, halfSize.y);
+            Vector3 localOffset = new Vector3(localX, 0f, localZ);
+
+            spawnPosition = plane.transform.TransformPoint(localOffset);
+        }
+        else
+        {
+            Transform spawnZone = spawnZones[Random.Range(0, spawnZones.Length)];
+            spawnPosition = spawnZone.position + new Vector3(
+                Random.Range(-2f, 2f), 0, Random.Range(-2f, 2f)
+            );
+        }
+
         GameObject prefab = enemyPrefabs[Random.Range(0, enemyPrefabs.Count)];
         GameObject enemy = Instantiate(prefab, spawnPosition, Quaternion.identity);
 
-        // Vérifier que l'ennemi a bien un script Enemy
         Enemy enemyScript = enemy.GetComponent<Enemy>();
         if (enemyScript == null)
         {
