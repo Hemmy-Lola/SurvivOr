@@ -1,5 +1,4 @@
-﻿// Shooter.cs
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Shooter : MonoBehaviour
 {
@@ -21,11 +20,13 @@ public class Shooter : MonoBehaviour
     {
         if (cam == null) return;
 
-        bool click = Input.GetMouseButtonDown(0);
-        bool tap = Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began;
-
-        if (click || tap)
+#if UNITY_EDITOR || UNITY_STANDALONE
+        if (Input.GetMouseButtonDown(0))
             Shoot(new Vector2(Screen.width / 2f, Screen.height / 2f));
+#else
+        if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
+            Shoot(Input.GetTouch(0).position);
+#endif
     }
 
     void Shoot(Vector2 screenPos)
@@ -35,11 +36,13 @@ public class Shooter : MonoBehaviour
 
         if (Physics.Raycast(ray, out var hit, maxDistance, hitMask))
         {
+            // ✅ Zombie meurt immédiatement
             if (hit.collider.TryGetComponent<Enemy>(out var enemy))
-                enemy.Die();
+                enemy.Die(); // Assure-toi que la méthode est publique
 
             if (shotEffectPrefab != null)
                 Instantiate(shotEffectPrefab, hit.point, Quaternion.identity);
         }
     }
 }
+
