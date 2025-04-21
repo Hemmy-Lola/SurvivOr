@@ -1218,6 +1218,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 1553500806}
+    - targetCorrespondingSourceObject: {fileID: 2512387469002778309, guid: 48cb3fb68c91eb94999fd99957eb0cae,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1553500821}
   m_SourcePrefab: {fileID: 100100000, guid: 48cb3fb68c91eb94999fd99957eb0cae, type: 3}
 --- !u!114 &331264286 stripped
 MonoBehaviour:
@@ -7164,6 +7168,26 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
+--- !u!114 &1553500821
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1553500799}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39b80f92621fe4c47bc874f49b350148, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  weaponModel: {fileID: 919132149155446097, guid: fdf00ae655c6f9d4abac02c38bd47b3e,
+    type: 3}
+  weaponPosition: {x: 0.2, y: -0.15, z: 0.3}
+  weaponRotation: {x: 0, y: 100, z: 1}
+  smoothing: 0.1
+  swayAmount: 0.02
+  maxSway: 0.06
+  swaySmoothness: 3
 --- !u!1 &1571486778 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2880783552202686662, guid: eaa92f5b3ae56ef47bd2b27cbc09ab4e,
@@ -9552,7 +9576,7 @@ PrefabInstance:
     - target: {fileID: 715092190945468590, guid: a3b775cbe33e0e040b9f0b322a3d7b17,
         type: 3}
       propertyPath: speed
-      value: 0.5
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 3896661070935121145, guid: a3b775cbe33e0e040b9f0b322a3d7b17,
         type: 3}
