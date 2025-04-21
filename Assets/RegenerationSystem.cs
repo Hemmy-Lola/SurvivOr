@@ -94,9 +94,12 @@ public class RegenerationSystem : MonoBehaviour
         estMort = true;
         Debug.Log($"{gameObject.name} est mort !");
 
+
         Time.timeScale = 0f;
 
-        // Afficher le menu de score
+        BloodEffectManager.SpawnBloodStatic(this.transform.position);
+
+
         AfficherMenuScore();
     }
 
