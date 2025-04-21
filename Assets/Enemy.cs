@@ -3,15 +3,14 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(Collider))]
-[RequireComponent(typeof(Rigidbody))]
 public class Enemy : MonoBehaviour
 {
     public float speed = 1f;
-    public float damage = 10f; // Dégâts infligés
-    public float health = 100f; // Points de vie
+    public float damage = 10f; 
+    public float health = 100f; 
     public event Action OnDeath;
     private Transform camTarget;
-    public GameObject prefabsEnnemis; // Liste des prefabs d'ennemis
+    public GameObject prefabsEnnemis; 
 
     void Start()
     {
@@ -22,7 +21,6 @@ public class Enemy : MonoBehaviour
             enabled = false;
         }
 
-        // Optionnel : Pour s'assurer que le Rigidbody réagit aux collisions en mode non-kinematic
         Rigidbody rb = GetComponent<Rigidbody>();
         if (rb != null)
         {
@@ -56,13 +54,13 @@ public class Enemy : MonoBehaviour
         if (collision.gameObject.TryGetComponent<RegenerationSystem>(out var player))
         {
             Debug.Log($"[Enemy] Collision détectée avec {player.gameObject.name}");
-            player.RecevoirDegats(damage); // Infligez les dégâts ici
+            player.RecevoirDegats(damage); 
         }
     }
 
     public void Die()
     {
-        ScoreManager.AjouterZombieTue(this.GetType().Name, 10); // Exemple : 10 points par zombie
+        ScoreManager.AjouterZombieTue(this.GetType().Name, 10); 
         OnDeath?.Invoke();
         Destroy(gameObject);
     }

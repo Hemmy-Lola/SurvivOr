@@ -3,6 +3,7 @@ using UnityEngine;
 
 public static class ScoreManager
 {
+
     private static Dictionary<string, int> zombiesTuesParType = new Dictionary<string, int>();
     private static int scoreTotal = 0;
 
@@ -41,5 +42,6 @@ public static class ScoreManager
     {
         zombiesTuesParType.Clear();
         scoreTotal = 0;
+        Debug.Log("Score réinitialisé.");
     }
 }

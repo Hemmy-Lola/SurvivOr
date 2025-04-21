@@ -5,8 +5,8 @@ using UnityEngine.XR.ARFoundation;
 public class ScanAndPlayManager : MonoBehaviour
 {
     [Header("UI")]
-    public GameObject scanningPanel;     // racine du Canvas Scan (Panel ou Canvas)
-    public GameObject crosshairCanvas;   // racine du Canvas Crosshair
+    public GameObject scanningPanel;     
+    public GameObject crosshairCanvas;   
     public Button btnRestart;
     public Button btnDone;
 
@@ -19,11 +19,9 @@ public class ScanAndPlayManager : MonoBehaviour
 
     void Start()
     {
-        // Bind des boutons
         btnRestart.onClick.AddListener(RestartScanning);
         btnDone.onClick.AddListener(FinishScanning);
 
-        // Lance le scanning au démarrage
         BeginScanning();
     }
 
@@ -45,7 +43,6 @@ public class ScanAndPlayManager : MonoBehaviour
 
     void FinishScanning()
     {
-        // On exige au moins 1 plane détecté
         if (planeManager.trackables.count == 0)
         {
             Debug.Log("[Scan] Aucun plane détecté, continuez à scanner.");

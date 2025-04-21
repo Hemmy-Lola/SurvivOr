@@ -7,10 +7,10 @@ public class Shooter : MonoBehaviour
     public Camera cam;
 
     [Header("Paramètres de tir")]
-    public float maxDistance = 50f; // Distance maximale du tir
-    public LayerMask hitMask = ~0;  // Masque des objets pouvant être touchés
-    public GameObject shotEffectPrefab = null; // Effet visuel du tir
-    public float damageAmount = 20f; // Dégâts infligés par tir
+    public float maxDistance = 50f;
+    public LayerMask hitMask = ~0; 
+    public GameObject shotEffectPrefab = null; 
+    public float damageAmount = 20f;
 
     void Start()
     {
@@ -45,7 +45,7 @@ public class Shooter : MonoBehaviour
             Debug.Log($"[Shooter] Touché : {hit.collider.name}");
 
             if (hit.collider.TryGetComponent<Enemy>(out var enemy))
-                enemy.ReceiveDamage(damageAmount); // Appliquer des dégâts au lieu de tuer directement
+                enemy.ReceiveDamage(damageAmount);
 
             if (shotEffectPrefab != null)
                 Instantiate(shotEffectPrefab, hit.point, Quaternion.identity);

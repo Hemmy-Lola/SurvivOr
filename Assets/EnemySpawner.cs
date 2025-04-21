@@ -6,16 +6,16 @@ using UnityEngine.XR.ARFoundation;
 public class EnemySpawner : MonoBehaviour
 {
     [Header("Prefab & limites")]
-    public List<GameObject> enemyPrefabs; // Liste des différents types de zombies
+    public List<GameObject> enemyPrefabs;
     public int maxEnemies = 10;
 
     [Header("Paramètres de spawn")]
-    public Transform[] spawnZones; // Zones de spawn prédéfinies
+    public Transform[] spawnZones;
     public float spawnInterval = 2f;
     public bool spawnOnlyOnPlanes = true;
 
     [Header("Références AR")]
-    public ARPlaneManager planeManager; // Gestionnaire des plans AR
+    public ARPlaneManager planeManager;
 
     private List<GameObject> enemies = new List<GameObject>();
 

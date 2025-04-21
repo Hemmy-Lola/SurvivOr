@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using TMPro; // Ajoutez cette directive en haut du fichier
 
 public class RegenerationSystem : MonoBehaviour
 {
@@ -11,7 +12,7 @@ public class RegenerationSystem : MonoBehaviour
     public bool estMort = false;
 
     [Header("Régénération")]
-    public float regenParSeconde = 20f;
+    public float regenParSeconde = 20.00f;
     public float delaiAvantRegen = 5f;
 
     [Header("Dégâts des ennemis")]
@@ -21,6 +22,8 @@ public class RegenerationSystem : MonoBehaviour
 
     private Coroutine regenCoroutine;
     private Coroutine attenteAvantRegenCoroutine;
+
+    public GameObject menuScoreCanvas;
 
     public virtual void RecevoirDegats(float degatsRecus)
     {
@@ -65,11 +68,21 @@ public class RegenerationSystem : MonoBehaviour
 
     private IEnumerator Regeneration()
     {
+        float accumulator = 0f;
         while (pointsDeVie < pointsDeVieMax)
         {
-            pointsDeVie += regenParSeconde * Time.deltaTime;
-            pointsDeVie = Mathf.Min(pointsDeVie, pointsDeVieMax);
-            Debug.Log($"{gameObject.name} régénère... PV: {pointsDeVie}");
+            // Ajouter les points fractionnaires accumulés
+            accumulator += regenParSeconde * Time.deltaTime;
+
+            // Convertir l'accumulateur en points entiers à ajouter
+            int healPoints = Mathf.FloorToInt(accumulator);
+            if (healPoints > 0)
+            {
+                pointsDeVie = Mathf.Min(pointsDeVie + healPoints, pointsDeVieMax);
+                accumulator -= healPoints;
+                Debug.Log($"{gameObject.name} régénère... PV: {pointsDeVie}");
+            }
+
             yield return null;
         }
 
@@ -81,68 +94,131 @@ public class RegenerationSystem : MonoBehaviour
         estMort = true;
         Debug.Log($"{gameObject.name} est mort !");
 
+        Time.timeScale = 0f;
+
         // Afficher le menu de score
         AfficherMenuScore();
     }
 
     private void AfficherMenuScore()
     {
-        // Charger le Canvas du menu de score
-        GameObject menuScore = GameObject.Find("MenuScoreCanvas");
-        if (menuScore == null)
+        try
         {
-            Debug.LogWarning("MenuScoreCanvas introuvable !");
-            return;
-        }
-        Debug.Log("MenuScoreCanvas trouvé et activé.");
-        menuScore.SetActive(true);
-
-        // Mettre à jour les informations de score
-        var texteScore = menuScore.transform.Find("TexteScore")?.GetComponent<UnityEngine.UI.Text>();
-        var boutonRetour = menuScore.transform.Find("BoutonRetour")?.GetComponent<UnityEngine.UI.Button>();
-
-        if (texteScore != null)
-        {
-            string detailsScore = "Score :\n";
-            foreach (var entry in ScoreManager.ObtenirZombiesTuesParType())
+            GameObject menuScore = GameObject.Find("MenuScoreCanvas");
+            if (menuScore == null)
             {
-                detailsScore += $"{entry.Key} : {entry.Value} tués\n";
+                Debug.LogWarning("MenuScoreCanvas introuvable !");
+                return;
+            }
+            // Assurez-vous que le MenuScoreCanvas est actif
+            // mais qu'il est invisible grâce au CanvasGroup (alpha = 0)
+            menuScore.SetActive(true);
+
+            CanvasGroup cg = menuScore.GetComponent<CanvasGroup>();
+            if (cg == null)
+            {
+                Debug.LogWarning("Aucun CanvasGroup trouvé sur MenuScoreCanvas !");
+            }
+            else
+            {
+                // Rendre visible le CanvasGroup (instantanément ou en fondu)
+                cg.alpha = 1f;
+                cg.interactable = true;
+                cg.blocksRaycasts = true;
             }
 
-            detailsScore += $"\nTotal Zombies : {ScoreManager.ObtenirNombreTotalZombies()}";
-            detailsScore += $"\nScore Total : {ScoreManager.ObtenirScoreTotal()}";
-            texteScore.text = detailsScore;
-            Debug.Log("Score mis à jour : " + detailsScore);
-        }
-        else
-        {
-            Debug.LogWarning("TexteScore introuvable ou son composant Text est manquant !");
-        }
+            // Mettre à jour les informations de score
+            var texteScore = menuScore.transform.Find("TexteScore")?.GetComponent<TextMeshProUGUI>();
+            var boutonRetour = menuScore.transform.Find("BoutonRetour")?.GetComponent<UnityEngine.UI.Button>();
 
-        if (boutonRetour != null)
-        {
-            boutonRetour.onClick.RemoveAllListeners();
-            boutonRetour.onClick.AddListener(() =>
+            if (texteScore != null)
             {
-                RetourAuMenu();
-            });
+                string detailsScore = "Details fin de partie:\n";
+                detailsScore += $"\nTotal Zombies : {ScoreManager.ObtenirNombreTotalZombies()}";
+                detailsScore += $"\nScore Total : {ScoreManager.ObtenirScoreTotal()}";
+                texteScore.text = detailsScore;
+                Debug.Log("Score mis à jour : " + detailsScore);
+            }
+            else
+            {
+                Debug.LogWarning("TexteScore introuvable ou son composant TextMeshProUGUI est manquant !");
+            }
+
+            if (boutonRetour != null)
+            {
+                boutonRetour.onClick.RemoveAllListeners();
+                boutonRetour.onClick.AddListener(() =>
+                {
+                    Debug.Log("BoutonRetour a été cliqué.");
+                    // Masquer le menu en ramenant l'alpha à 0
+                    if (cg != null)
+                    {
+                        cg.alpha = 0f;
+                        cg.interactable = false;
+                        cg.blocksRaycasts = false;
+                    }
+                    RetourAuMenu();
+                });
+            }
+            else
+            {
+                Debug.LogWarning("BoutonRetour introuvable ou son composant Button est manquant !");
+            }
+
+            if (texteScore != null && boutonRetour != null)
+            {
+                RectTransform texteRect = texteScore.GetComponent<RectTransform>();
+                RectTransform boutonRect = boutonRetour.GetComponent<RectTransform>();
+
+                if (texteRect != null && boutonRect != null)
+                {
+                    Vector3 textePosition = texteRect.localPosition;
+                    boutonRect.localPosition = new Vector3(
+                        textePosition.x,
+                        textePosition.y - texteRect.rect.height - 20f,
+                        textePosition.z
+                    );
+                }
+            }
         }
-        else
+        catch (System.Exception e)
         {
-            Debug.LogWarning("BoutonRetour introuvable ou son composant Button est manquant !");
+            Debug.LogError("Erreur lors du chargement de la scène MenuScore : " + e.Message);
+            return;
         }
     }
 
     private void RetourAuMenu()
     {
+        Time.timeScale = 1f; // Réactiver le temps
+
+        // Réinitialiser les points de vie et l'état mort
+        pointsDeVie = pointsDeVieMax;
+        estMort = false;
+
         // Réinitialiser le score
         ScoreManager.ReinitialiserScore();
 
+        // Détruire uniquement les clones d'Enemy (ceux dont le nom contient "(Clone)")
+        Enemy[] enemies = Object.FindObjectsByType<Enemy>(FindObjectsSortMode.None);
+        foreach (Enemy enemy in enemies)
+        {
+            if (enemy.gameObject.name.Contains("(Clone)"))
+            {
+                Destroy(enemy.gameObject);
+            }
+        }
+
         // Retourner au menu de scan
-        var scanManager = FindObjectOfType<ScanAndPlayManager>();
+        var scanManager = Object.FindFirstObjectByType<ScanAndPlayManager>();
         if (scanManager != null)
         {
+            Debug.Log("Retour au menu de scan.");
             scanManager.RestartScanning();
+        }
+        else 
+        {
+            Debug.LogWarning("ScanAndPlayManager introuvable !");
         }
     }
 
