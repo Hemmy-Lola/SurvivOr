@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using TMPro; // Ajoutez cette directive en haut du fichier
+using TMPro;
 
 public class RegenerationSystem : MonoBehaviour
 {
@@ -16,9 +16,9 @@ public class RegenerationSystem : MonoBehaviour
     public float delaiAvantRegen = 5f;
 
     [Header("Dégâts des ennemis")]
-    public float rayonDetection = 1.5f; // Rayon équivalent à un hexagone
-    public float degatsParEnnemi = 10f; // Dégâts infligés par ennemi proche
-    public GameObject[] prefabsEnnemis; // Liste des prefabs d'ennemis
+    public float rayonDetection = 1.5f;
+    public float degatsParEnnemi = 10f;
+    public GameObject[] prefabsEnnemis;
 
     private Coroutine regenCoroutine;
     private Coroutine attenteAvantRegenCoroutine;
@@ -33,7 +33,6 @@ public class RegenerationSystem : MonoBehaviour
 
         Debug.Log($"{gameObject.name} a reçu {degatsEffectifs} dégâts, PV restants: {pointsDeVie}");
 
-        // Stopper la régénération si en cours
         if (regenCoroutine != null)
         {
             StopCoroutine(regenCoroutine);
@@ -45,10 +44,8 @@ public class RegenerationSystem : MonoBehaviour
             StopCoroutine(attenteAvantRegenCoroutine);
         }
 
-        // Redémarrer le timer de régénération
         attenteAvantRegenCoroutine = StartCoroutine(AttenteAvantRegen());
 
-        // Si mort
         if (pointsDeVie <= 0 && !estMort)
         {
             Mourir();
@@ -71,10 +68,8 @@ public class RegenerationSystem : MonoBehaviour
         float accumulator = 0f;
         while (pointsDeVie < pointsDeVieMax)
         {
-            // Ajouter les points fractionnaires accumulés
             accumulator += regenParSeconde * Time.deltaTime;
 
-            // Convertir l'accumulateur en points entiers à ajouter
             int healPoints = Mathf.FloorToInt(accumulator);
             if (healPoints > 0)
             {
@@ -94,7 +89,6 @@ public class RegenerationSystem : MonoBehaviour
         estMort = true;
         Debug.Log($"{gameObject.name} est mort !");
 
-
         Time.timeScale = 0f;
 
         BloodEffectManager.SpawnBloodStatic(this.transform.position);
@@ -113,8 +107,7 @@ public class RegenerationSystem : MonoBehaviour
                 Debug.LogWarning("MenuScoreCanvas introuvable !");
                 return;
             }
-            // Assurez-vous que le MenuScoreCanvas est actif
-            // mais qu'il est invisible grâce au CanvasGroup (alpha = 0)
+
             menuScore.SetActive(true);
 
             CanvasGroup cg = menuScore.GetComponent<CanvasGroup>();
@@ -193,16 +186,13 @@ public class RegenerationSystem : MonoBehaviour
 
     private void RetourAuMenu()
     {
-        Time.timeScale = 1f; // Réactiver le temps
+        Time.timeScale = 1f; 
 
-        // Réinitialiser les points de vie et l'état mort
         pointsDeVie = pointsDeVieMax;
         estMort = false;
 
-        // Réinitialiser le score
         ScoreManager.ReinitialiserScore();
 
-        // Détruire uniquement les clones d'Enemy (ceux dont le nom contient "(Clone)")
         Enemy[] enemies = Object.FindObjectsByType<Enemy>(FindObjectsSortMode.None);
         foreach (Enemy enemy in enemies)
         {
@@ -212,7 +202,6 @@ public class RegenerationSystem : MonoBehaviour
             }
         }
 
-        // Retourner au menu de scan
         var scanManager = Object.FindFirstObjectByType<ScanAndPlayManager>();
         if (scanManager != null)
         {
@@ -229,7 +218,6 @@ public class RegenerationSystem : MonoBehaviour
     {
         foreach (var prefabEnnemi in prefabsEnnemis)
         {
-            // Trouver toutes les instances de ce prefab dans la scène
             var ennemis = GameObject.FindGameObjectsWithTag(prefabEnnemi.tag);
 
             foreach (var ennemi in ennemis)
@@ -249,7 +237,6 @@ public class RegenerationSystem : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        // Visualiser le rayon de détection dans l'éditeur
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, rayonDetection);
     }
