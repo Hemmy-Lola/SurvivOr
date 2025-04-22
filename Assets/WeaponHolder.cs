@@ -7,6 +7,10 @@ public class WeaponHolder : MonoBehaviour
     public Vector3 weaponPosition = new Vector3(0.2f, -0.15f, 0.3f);  // Position FPS plus proche
     public Vector3 weaponRotation = new Vector3(0, 100, 1);  // Rotation par défaut pour FPS
 
+    [Header("Render Settings")]
+    public bool disableShadows = true;  // Désactiver les ombres par défaut
+    public int renderQueue = 3000;      // Mettre l'arme au-dessus des objets AR
+
     [Header("FPS Settings")]
     [Range(0.1f, 1f)]
     public float smoothing = 0.1f;  // Lissage des mouvements
@@ -33,6 +37,10 @@ public class WeaponHolder : MonoBehaviour
             GameObject weapon = Instantiate(weaponModel, mainCamera.transform);
             weaponTransform = weapon.transform;
             initialPosition = weaponPosition;
+            
+            // Configuration du rendu pour l'AR
+            ConfigureWeaponForAR(weapon);
+            
             UpdateWeaponTransform();
         }
         else
@@ -41,30 +49,53 @@ public class WeaponHolder : MonoBehaviour
         }
     }
 
+    void ConfigureWeaponForAR(GameObject weapon)
+    {
+        // Configurer tous les Renderers (modèle principal et enfants)
+        Renderer[] renderers = weapon.GetComponentsInChildren<Renderer>();
+        foreach (Renderer renderer in renderers)
+        {
+            // Désactiver les ombres si demandé
+            if (disableShadows)
+            {
+                renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                renderer.receiveShadows = false;
+            }
+
+            // Ajuster la queue de rendu pour tous les matériaux
+            foreach (Material mat in renderer.materials)
+            {
+                mat.renderQueue = renderQueue;
+                
+                // S'assurer que le shader est configuré pour l'AR
+                if (mat.shader.name.Contains("Standard"))
+                {
+                    mat.SetInt("_ZWrite", 1);  // Activer l'écriture de profondeur
+                    mat.SetInt("_ZTest", 4);   // LEqual - rendu normal de profondeur
+                }
+            }
+        }
+    }
+
     void Update()
     {
         if (weaponTransform == null) return;
 
-        // Calcul du mouvement de l'arme basé sur le mouvement de la caméra
         float moveX = -Input.GetAxis("Mouse X") * swayAmount;
         float moveY = -Input.GetAxis("Mouse Y") * swayAmount;
 
-        // Limiter le mouvement
         moveX = Mathf.Clamp(moveX, -maxSway, maxSway);
         moveY = Mathf.Clamp(moveY, -maxSway, maxSway);
 
-        // Position cible avec le balancement
         Vector3 swayPosition = new Vector3(moveX, moveY, 0);
         targetPosition = initialPosition + swayPosition;
 
-        // Appliquer le mouvement avec lissage
         weaponTransform.localPosition = Vector3.Lerp(
             weaponTransform.localPosition, 
             targetPosition, 
             Time.deltaTime * swaySmoothness
         );
 
-        // Maintenir la rotation
         weaponTransform.localRotation = Quaternion.Euler(weaponRotation);
     }
 
