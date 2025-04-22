@@ -58,16 +58,11 @@ public class Enemy : MonoBehaviour
         {
             if (Time.time - lastAttackTime >= attackCooldown)
             {
-                Attack();
                 lastAttackTime = Time.time;
             }
         }
     }
 
-    void Attack()
-    {
-        Debug.Log($"[Enemy] Attaque le joueur ! Dégâts : {damage}");
-    }
 
     public void ReceiveDamage(float damage)
     {
