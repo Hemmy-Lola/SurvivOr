@@ -94,7 +94,6 @@ public class EnemySpawner : MonoBehaviour
                 GameObject prefab = enemyPrefabs[Random.Range(0, enemyPrefabs.Count)];
                 GameObject enemy = Instantiate(prefab, spawnPosition, Quaternion.identity);
 
-                // Le fait tourner vers la caméra
                 Vector3 lookAtPosition = new Vector3(
                     mainCamera.transform.position.x,
                     spawnPosition.y,

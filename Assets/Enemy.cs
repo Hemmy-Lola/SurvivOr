@@ -5,12 +5,19 @@ using UnityEngine.SceneManagement;
 [RequireComponent(typeof(Collider))]
 public class Enemy : MonoBehaviour
 {
+    [Header("Stats")]
     public float speed = 1f;
-    public float damage = 10f; 
-    public float health = 100f; 
-    public event Action OnDeath;
+    public float damage = 10f;
+    public float health = 100f;
+    public float minDistanceToPlayer = 0.5f;
+    public float attackCooldown = 1f;
+
+    [Header("Références")]
+    public GameObject prefabsEnnemis;
     private Transform camTarget;
-    public GameObject prefabsEnnemis; 
+    private float lastAttackTime;
+
+    public event Action OnDeath;
 
     void Start()
     {
@@ -19,6 +26,7 @@ public class Enemy : MonoBehaviour
         {
             Debug.LogError("[Enemy] Pas de MainCamera taggée !");
             enabled = false;
+            return;
         }
 
         Rigidbody rb = GetComponent<Rigidbody>();
@@ -30,12 +38,35 @@ public class Enemy : MonoBehaviour
 
     void Update()
     {
-        if (camTarget != null)
+        if (camTarget == null) return;
+
+        // Regarder vers la caméra
+        Vector3 lookAtTarget = new Vector3(camTarget.position.x, transform.position.y, camTarget.position.z);
+        transform.LookAt(lookAtTarget);
+
+        float distance = Vector3.Distance(transform.position, camTarget.position);
+
+        if (distance > minDistanceToPlayer)
+        {
             transform.position = Vector3.MoveTowards(
                 transform.position,
                 camTarget.position,
                 speed * Time.deltaTime
             );
+        }
+        else
+        {
+            if (Time.time - lastAttackTime >= attackCooldown)
+            {
+                Attack();
+                lastAttackTime = Time.time;
+            }
+        }
+    }
+
+    void Attack()
+    {
+        Debug.Log($"[Enemy] Attaque le joueur ! Dégâts : {damage}");
     }
 
     public void ReceiveDamage(float damage)
@@ -49,18 +80,16 @@ public class Enemy : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        Debug.Log($"[Enemy] Collision détectée avec {collision.gameObject.name}");
-
         if (collision.gameObject.TryGetComponent<RegenerationSystem>(out var player))
         {
-            Debug.Log($"[Enemy] Collision détectée avec {player.gameObject.name}");
-            player.RecevoirDegats(damage); 
+            Debug.Log($"[Enemy] Collision avec {player.gameObject.name}");
+            player.RecevoirDegats(damage);
         }
     }
 
     public void Die()
     {
-        ScoreManager.AjouterZombieTue(this.GetType().Name, 10); 
+        ScoreManager.AjouterZombieTue(this.GetType().Name, 10);
         OnDeath?.Invoke();
         Destroy(gameObject);
     }

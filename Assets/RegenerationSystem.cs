@@ -117,13 +117,11 @@ public class RegenerationSystem : MonoBehaviour
             }
             else
             {
-                // Rendre visible le CanvasGroup (instantanément ou en fondu)
                 cg.alpha = 1f;
                 cg.interactable = true;
                 cg.blocksRaycasts = true;
             }
 
-            // Mettre à jour les informations de score
             var texteScore = menuScore.transform.Find("TexteScore")?.GetComponent<TextMeshProUGUI>();
             var boutonRetour = menuScore.transform.Find("BoutonRetour")?.GetComponent<UnityEngine.UI.Button>();
 
@@ -146,7 +144,6 @@ public class RegenerationSystem : MonoBehaviour
                 boutonRetour.onClick.AddListener(() =>
                 {
                     Debug.Log("BoutonRetour a été cliqué.");
-                    // Masquer le menu en ramenant l'alpha à 0
                     if (cg != null)
                     {
                         cg.alpha = 0f;
